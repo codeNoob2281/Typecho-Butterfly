@@ -312,14 +312,8 @@
     close.setAttribute('aria-label', '关闭');
     close.innerHTML = '&times;';
 
-    var tip = document.createElement('div');
-    tip.className = 'bf-mermaid-lightbox__tip';
-    var isTouch = ('ontouchstart' in window) || (navigator.maxTouchPoints && navigator.maxTouchPoints > 0) || window.innerWidth < 992;
-    tip.textContent = isTouch ? '双指缩放 · 单指拖动 · 点击空白关闭' : '滚轮缩放 · 拖拽移动 · Esc 关闭';
-
     root.appendChild(stage);
     root.appendChild(close);
-    root.appendChild(tip);
     document.body.appendChild(root);
 
     lightbox = {
@@ -613,8 +607,7 @@
       '.bf-mermaid-lightbox__holder svg{display:block;background:transparent;}',
       'html[data-theme="dark"] .bf-mermaid-lightbox__holder{background:#0f1115;}',
       '.bf-mermaid-lightbox__close{position:fixed;top:20px;right:24px;width:44px;height:44px;border:none;border-radius:50%;background:rgba(255,255,255,.16);color:#fff;font-size:30px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .2s;z-index:2;}',
-      '.bf-mermaid-lightbox__close:hover{background:rgba(255,255,255,.3);}',
-      '.bf-mermaid-lightbox__tip{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);color:rgba(255,255,255,.72);font-size:13px;background:rgba(0,0,0,.35);padding:6px 14px;border-radius:16px;pointer-events:none;white-space:nowrap;}'
+      '.bf-mermaid-lightbox__close:hover{background:rgba(255,255,255,.3);}'
     ].join('');
     document.head.appendChild(style);
   }

@@ -505,7 +505,7 @@
         mermaidJs: '<?php echo htmlspecialchars($bfCdnBase, ENT_QUOTES, 'UTF-8'); ?>/mermaid@10.9.1/dist/mermaid.min.js'
       };
     </script>
-    <script src="<?php $this->options->themeUrl('/js/markdown-support.js?v1.0.7'); ?>"></script>
+    <script src="<?php $this->options->themeUrl('/js/markdown-support.js?v1.0.8'); ?>"></script>
   <?php endif ?>
 
   <!--[if lt IE 8]>
