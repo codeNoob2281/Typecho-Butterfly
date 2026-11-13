@@ -252,8 +252,14 @@
   function applyMermaidSizes() {
     var nodes = document.querySelectorAll('#article-container .mermaid svg');
     Array.prototype.slice.call(nodes).forEach(function (svg) {
-      // 内联展示：宽度铺满正文容器，高度按比例自适应（不产生横向滚动）
-      svg.style.width = '100%';
+      // 以图表原始宽度展示；仅当原始宽度超过正文容器时，由 max-width:100% 等比缩小。
+      // 这样小图不会被强行拉大，大图也不会溢出产生横向滚动。
+      var viewBox = svg.viewBox && svg.viewBox.baseVal;
+      if (viewBox && viewBox.width) {
+        svg.style.width = Math.ceil(viewBox.width) + 'px';
+      } else {
+        svg.style.width = 'auto';
+      }
       svg.style.maxWidth = '100%';
       svg.style.height = 'auto';
     });
@@ -593,7 +599,7 @@
     style.id = 'bf-markdown-support-style';
     style.textContent = [
       '#article-container .mermaid{position:relative;margin:1.2em 0;overflow-x:auto;}',
-      '#article-container .mermaid svg{display:block;margin:0 auto;width:100% !important;max-width:100% !important;height:auto !important;}',
+      '#article-container .mermaid svg{display:block;margin:0 auto;max-width:100% !important;height:auto !important;}',
       '#article-container .mermaid[data-mermaid-src]:not([data-mermaid-processed="1"]){white-space:pre-wrap;font-family:inherit;}',
       '#article-container .mermaid .bf-mermaid-zoom-hint{position:absolute;top:8px;right:10px;display:none;align-items:center;justify-content:center;width:28px;height:28px;border-radius:8px;background:rgba(0,0,0,.45);color:#fff;opacity:0;transition:opacity .2s;z-index:2;pointer-events:none;}',
       '@media (min-width:992px){#article-container .mermaid{cursor:zoom-in;}#article-container .mermaid:hover .bf-mermaid-zoom-hint{display:flex;opacity:1;}}',
