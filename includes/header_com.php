@@ -483,6 +483,31 @@
   <script src="<?php cdnBaseUrl() ?>/js/OwO.min.js"></script>
   <script src="<?php cdnBaseUrl() ?>/js/artplayer.js"> </script>
 
+  <?php
+  $bfEnableKaTeX = $this->options->enableKaTeX === 'on';
+  $bfEnableMermaid = $this->options->enableMermaid === 'on';
+  ?>
+  <?php if ($bfEnableKaTeX || $bfEnableMermaid) : ?>
+    <?php
+    $bfJsdelivr = $this->options->jsdelivrLink;
+    if (empty($bfJsdelivr)) {
+      $bfJsdelivr = 'cdn.jsdelivr.net';
+    }
+    $bfCdnBase = 'https://' . rtrim($bfJsdelivr, '/') . '/npm';
+    ?>
+    <script>
+      window.BUTTERFLY_MARKDOWN_CONFIG = {
+        katex: <?php echo $bfEnableKaTeX ? 'true' : 'false'; ?>,
+        mermaid: <?php echo $bfEnableMermaid ? 'true' : 'false'; ?>,
+        katexCss: '<?php echo htmlspecialchars($bfCdnBase, ENT_QUOTES, 'UTF-8'); ?>/katex@0.16.11/dist/katex.min.css',
+        katexJs: '<?php echo htmlspecialchars($bfCdnBase, ENT_QUOTES, 'UTF-8'); ?>/katex@0.16.11/dist/katex.min.js',
+        katexAutoRenderJs: '<?php echo htmlspecialchars($bfCdnBase, ENT_QUOTES, 'UTF-8'); ?>/katex@0.16.11/dist/contrib/auto-render.min.js',
+        mermaidJs: '<?php echo htmlspecialchars($bfCdnBase, ENT_QUOTES, 'UTF-8'); ?>/mermaid@10.9.1/dist/mermaid.min.js'
+      };
+    </script>
+    <script src="<?php $this->options->themeUrl('/js/markdown-support.js?v1.0.3'); ?>"></script>
+  <?php endif ?>
+
   <!--[if lt IE 8]>
     <div class="browsehappy" role="dialog"><?php _e('当前网页 <strong>不支持</strong> 你正在使用的浏览器. 为了正常的访问, 请 <a href="http://browsehappy.com/">升级你的浏览器</a>'); ?>.</div>
 <![endif]-->

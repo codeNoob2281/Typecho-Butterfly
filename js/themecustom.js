@@ -8,6 +8,7 @@
         { id: 'beautifyBlock', title: '美化选项', desc: '控制顶图、代码块、提示弹窗、侧栏时钟等视觉增强项。', selector: '#beautifyBlock' },
         { id: 'ShowLive2D', title: 'Live2D 设置', desc: '管理 Live2D 展示、弹窗位置、鼠标特效与首页副标题等功能。', selector: '#ShowLive2D' },
         { id: 'otherCustom', title: '其他自定义内容', desc: '包括导航栏链接、认证用户、自定义 CSS / JS / Head / Footer 等。', selector: '#otherCustom' },
+        { id: 'markdown', title: 'Markdown语法支持', desc: '控制文章内容中的数学公式（KaTeX）与 Mermaid 图表渲染。', selector: '#markdown' },
         { id: 'CustomColor', title: '自定义颜色', desc: '管理主题色、暗色模式与实验性自定义色板。', selector: '#CustomColor' },
         { id: 'captchaVerify', title: '评论验证码', desc: '管理 reCAPTCHA、hCaptcha 与 Cloudflare Turnstile 配置。', selector: '#captchaVerify' },
         { id: 'cache', title: '缓存设置', desc: '控制主题缓存方式和默认缓存有效期。', selector: '#cache' }

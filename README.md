@@ -64,7 +64,8 @@ Typecho1.3.0 PHP8.2 PostgresSQL NGINX
 - [X] 代码块显示代码语言/关闭或展开代码块/代码复制/代码自动换行
 - [ ] 可关闭文字复制/可开启内容复制增加版权信息）
 - [X] 本地搜索
-- [ ] Mathjax 和 Katex
+- [X] KaTeX 数学公式支持（后台「Markdown语法支持」中开启）
+- [X] Mermaid 图表支持（后台「Markdown语法支持」中开启）
 - [x] 内置404页面
 - [x] 显示字数统计
 - [x] 显示相关文章

@@ -255,6 +255,7 @@ function themeConfig($form)
                         <a href='#beautifyBlock'>美化选项</a>
                         <a href='#ShowLive2D'>Live2D和界面交互</a>
                         <a href='#otherCustom'>其他自定义内容</a>
+                        <a href='#markdown'>Markdown语法支持</a>
                         <a href='#CustomColor'>自定义颜色</a>
                         <a href='#captchaVerify'>评论验证码</a>
                         <a href='#cache'>缓存设置</a>
@@ -342,7 +343,7 @@ function themeConfig($form)
             });
         })();
     </script>
-    <script src="<?php Helper::options()->themeUrl('js/themecustom.js?v1.6.10'); ?>"></script>
+    <script src="<?php Helper::options()->themeUrl('js/themecustom.js?v1.6.11'); ?>"></script>
     <?php
     $sticky_cids = new Typecho_Widget_Helper_Form_Element_Text('sticky_cids', NULL, NULL, '置顶文章的 cid', '<span style="color:#444;display:inline-block;font-family:arial;background:#E8EFD1;padding:8px;width:100%">按照排序输入, 请以半角逗号或空格分隔 cid</span>');
     $sticky_cids->setAttribute('id', 'cids');
@@ -1077,7 +1078,35 @@ function themeConfig($form)
         '介绍：设置默认的缓存过期时间，单位为秒。默认为86400秒（24小时）。'
     );
     $form->addInput($CacheTime);
-    
+
+    // Markdown 语法支持（数学公式 / Mermaid 图表）
+    $enableKaTeX = new Typecho_Widget_Helper_Form_Element_Select(
+        'enableKaTeX',
+        array(
+            'off' => '关闭（默认）',
+            'on' => '开启',
+        ),
+        'off',
+        '数学公式支持（KaTeX）',
+        '介绍：开启后文章内容中的行内公式 <code>$...$</code> 与块级公式 <code>$$...$$</code> 将由 KaTeX 渲染。<br>
+         注意：KaTeX 静态资源从 CDN 加载，请确保访客网络可访问 CDN；行内公式建议在 <code>$</code> 两侧保留空格以避免与正文混淆。'
+    );
+    $enableKaTeX->setAttribute('id', 'markdown');
+    $form->addInput($enableKaTeX->multiMode());
+
+    $enableMermaid = new Typecho_Widget_Helper_Form_Element_Select(
+        'enableMermaid',
+        array(
+            'off' => '关闭（默认）',
+            'on' => '开启',
+        ),
+        'off',
+        'Mermaid 图表支持',
+        '介绍：开启后可使用 <code>```mermaid</code> 代码块编写流程图、时序图、甘特图等，页面加载时自动渲染为图表。<br>
+         注意：Mermaid 资源从 CDN 加载，请确保访客网络可访问 CDN；图表越复杂，渲染耗时越长。'
+    );
+    $form->addInput($enableMermaid->multiMode());
+
     // 结束
 }
 
