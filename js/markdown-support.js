@@ -261,10 +261,6 @@
 
   var lightbox = null;
 
-  function isPcViewport() {
-    return window.innerWidth >= 992;
-  }
-
   function applyLightboxTransform() {
     if (!lightbox) {
       return;
@@ -312,7 +308,8 @@
 
     var tip = document.createElement('div');
     tip.className = 'bf-mermaid-lightbox__tip';
-    tip.textContent = '滚轮缩放 · 拖拽移动 · Esc 关闭';
+    var isTouch = ('ontouchstart' in window) || (navigator.maxTouchPoints && navigator.maxTouchPoints > 0) || window.innerWidth < 992;
+    tip.textContent = isTouch ? '双指缩放 · 单指拖动 · 点击空白关闭' : '滚轮缩放 · 拖拽移动 · Esc 关闭';
 
     root.appendChild(stage);
     root.appendChild(close);
@@ -350,45 +347,97 @@
       applyLightboxTransform();
     }, { passive: false });
 
-    var dragging = false;
-    var startX = 0;
-    var startY = 0;
-    var baseX = 0;
-    var baseY = 0;
+    var pointers = {};
+    var dragStart = null;
+    var pinchStart = null;
+
+    function pointerDistance(a, b) {
+      var dx = a.x - b.x;
+      var dy = a.y - b.y;
+      return Math.sqrt(dx * dx + dy * dy);
+    }
+
+    function pointerCount() {
+      return Object.keys(pointers).length;
+    }
 
     holder.addEventListener('pointerdown', function (event) {
-      if (root.hidden || event.button !== 0) {
+      if (root.hidden) {
         return;
       }
-      dragging = true;
-      startX = event.clientX;
-      startY = event.clientY;
-      baseX = lightbox.tx;
-      baseY = lightbox.ty;
-      holder.classList.add('is-dragging');
+      if (event.pointerType === 'mouse' && event.button !== 0) {
+        return;
+      }
+
+      pointers[event.pointerId] = { x: event.clientX, y: event.clientY };
       try {
         holder.setPointerCapture(event.pointerId);
       } catch (error) {
         // 忽略
       }
+
+      if (pointerCount() === 1) {
+        dragStart = { x: event.clientX, y: event.clientY, tx: lightbox.tx, ty: lightbox.ty };
+        pinchStart = null;
+        holder.classList.add('is-dragging');
+      } else if (pointerCount() === 2) {
+        var points = Object.keys(pointers).map(function (key) { return pointers[key]; });
+        pinchStart = { distance: pointerDistance(points[0], points[1]), scale: lightbox.scale };
+        dragStart = null;
+      }
+
       event.preventDefault();
     });
 
     holder.addEventListener('pointermove', function (event) {
-      if (!dragging) {
+      if (root.hidden || !(event.pointerId in pointers)) {
         return;
       }
-      lightbox.tx = baseX + (event.clientX - startX);
-      lightbox.ty = baseY + (event.clientY - startY);
-      applyLightboxTransform();
+
+      pointers[event.pointerId] = { x: event.clientX, y: event.clientY };
+      var ids = Object.keys(pointers);
+
+      if (ids.length >= 2 && pinchStart) {
+        var points = ids.map(function (key) { return pointers[key]; });
+        var distance = pointerDistance(points[0], points[1]);
+        var scale = pinchStart.scale * (distance / (pinchStart.distance || 1));
+        lightbox.scale = Math.min(10, Math.max(lightbox.fit * 0.5, scale));
+        applyLightboxTransform();
+      } else if (ids.length === 1 && dragStart) {
+        lightbox.tx = dragStart.tx + (event.clientX - dragStart.x);
+        lightbox.ty = dragStart.ty + (event.clientY - dragStart.y);
+        applyLightboxTransform();
+      }
+
+      event.preventDefault();
     });
 
-    var endDrag = function () {
-      dragging = false;
-      holder.classList.remove('is-dragging');
+    var endPointer = function (event) {
+      if (event && event.pointerId in pointers) {
+        delete pointers[event.pointerId];
+      }
+
+      if (pointerCount() < 2) {
+        pinchStart = null;
+      }
+
+      if (pointerCount() === 0) {
+        dragStart = null;
+        holder.classList.remove('is-dragging');
+      } else if (pointerCount() === 1) {
+        var key = Object.keys(pointers)[0];
+        var point = pointers[key];
+        dragStart = { x: point.x, y: point.y, tx: lightbox.tx, ty: lightbox.ty };
+      }
     };
-    holder.addEventListener('pointerup', endDrag);
-    holder.addEventListener('pointercancel', endDrag);
+
+    holder.addEventListener('pointerup', endPointer);
+    holder.addEventListener('pointercancel', endPointer);
+    holder.addEventListener('pointerleave', function (event) {
+      if (event.pointerType === 'mouse') {
+        endPointer(event);
+      }
+    });
 
     document.addEventListener('keydown', function (event) {
       if (event.key === 'Escape' && !root.hidden) {
@@ -400,10 +449,6 @@
   }
 
   function openLightbox(sourceSvg) {
-    if (!isPcViewport()) {
-      return;
-    }
-
     var lb = ensureLightbox();
     var svg = sourceSvg.cloneNode(true);
 
@@ -449,9 +494,6 @@
         box._bfZoomBound = true;
         box.setAttribute('title', '点击全屏查看');
         box.addEventListener('click', function () {
-          if (!isPcViewport()) {
-            return;
-          }
           var svg = box.querySelector('svg');
           if (svg) {
             openLightbox(svg);
@@ -555,11 +597,12 @@
       '#article-container .mermaid[data-mermaid-src]:not([data-mermaid-processed="1"]){white-space:pre-wrap;font-family:inherit;}',
       '#article-container .mermaid .bf-mermaid-zoom-hint{position:absolute;top:8px;right:10px;display:none;align-items:center;justify-content:center;width:28px;height:28px;border-radius:8px;background:rgba(0,0,0,.45);color:#fff;opacity:0;transition:opacity .2s;z-index:2;pointer-events:none;}',
       '@media (min-width:992px){#article-container .mermaid{cursor:zoom-in;}#article-container .mermaid:hover .bf-mermaid-zoom-hint{display:flex;opacity:1;}}',
+      '@media (max-width:991px){#article-container .mermaid .bf-mermaid-zoom-hint{display:flex;opacity:.75;}}',
       '#article-container .katex-display{overflow-x:auto;overflow-y:hidden;padding:.2em 0;}',
       '.bf-mermaid-lightbox{position:fixed;inset:0;z-index:99998;display:flex;align-items:center;justify-content:center;background:rgba(12,14,18,.86);}',
       '.bf-mermaid-lightbox[hidden]{display:none !important;}',
       '.bf-mermaid-lightbox__stage{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;overflow:hidden;pointer-events:none;}',
-      '.bf-mermaid-lightbox__holder{transform-origin:center center;will-change:transform;cursor:grab;padding:16px;border-radius:12px;background:#fff;box-shadow:0 18px 60px rgba(0,0,0,.45);pointer-events:auto;}',
+      '.bf-mermaid-lightbox__holder{transform-origin:center center;will-change:transform;cursor:grab;padding:16px;border-radius:12px;background:#fff;box-shadow:0 18px 60px rgba(0,0,0,.45);pointer-events:auto;touch-action:none;}',
       '.bf-mermaid-lightbox__holder.is-dragging{cursor:grabbing;}',
       '.bf-mermaid-lightbox__holder svg{display:block;background:transparent;}',
       'html[data-theme="dark"] .bf-mermaid-lightbox__holder{background:#0f1115;}',
