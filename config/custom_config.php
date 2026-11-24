@@ -1216,20 +1216,22 @@ function themeInit($archive)
     $db = Typecho_Db::get();
     $viewsInitCache = getCache('views_column_checked', 86400);
     if ($viewsInitCache === false) {
-        $viewsReady = false;
+        // 用 SELECT * 探测真实列：fetchRow 遇到未知列会静默返回 false 而不抛异常，
+        // 直接 select('views') 无法可靠判断列是否存在，会导致下面的 ALTER 不执行、
+        // 单篇文章页在 UPDATE views 时报 "no such column: views" 500。
         try {
-            $db->fetchRow($db->select('views')->from('table.contents')->limit(1));
-            $viewsReady = true;
-        } catch (Exception $e) {
-            try {
-                $db->query('ALTER TABLE ' . $db->getPrefix() . 'contents ADD COLUMN views INT DEFAULT 0;');
-                $db->fetchRow($db->select('views')->from('table.contents')->limit(1));
-                $viewsReady = true;
-            } catch (Exception $ignored) {
+            $probeRow = $db->fetchRow($db->select('*')->from('table.contents')->limit(1));
+            $hasViews = ($probeRow !== false && is_array($probeRow) && array_key_exists('views', $probeRow));
+            if (!$hasViews) {
+                try {
+                    $db->query('ALTER TABLE ' . $db->getPrefix() . 'contents ADD COLUMN views INT DEFAULT 0;');
+                } catch (Exception $ignored) {
+                    // 列已存在（或并发已添加）时忽略
+                }
             }
-        }
-        if ($viewsReady) {
             setCache('views_column_checked', 1);
+        } catch (Exception $e) {
+            // 探测失败时不写缓存，下次请求重试
         }
     }
     //初始化完成
