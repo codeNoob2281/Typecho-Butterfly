@@ -337,6 +337,60 @@
       /iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent) && document.documentElement.classList.add("apple")
     })(window)
   </script>
+  <?php
+  // ===== highlight.js 代码块高亮主题（浅色/深色自适应）=====
+  $bfCodeThemeMap = butterflyGetCodeThemeMap();
+  $bfCodeTheme = (string) $this->options->codeTheme;
+  if ($bfCodeTheme === '' || !isset($bfCodeThemeMap[$bfCodeTheme])) {
+      $bfCodeTheme = 'github';
+  }
+  $bfLightThemeCss = $bfCodeThemeMap[$bfCodeTheme]['light'];
+  $bfDarkThemeCss = $bfCodeThemeMap[$bfCodeTheme]['dark'];
+  $bfHighlightCssBase = butterflyGetHighlightCssBase();
+  ?>
+  <link rel="stylesheet" id="bf-code-theme-light" href="<?php echo $bfHighlightCssBase . $bfLightThemeCss; ?>.min.css" media="screen">
+  <link rel="stylesheet" id="bf-code-theme-dark" href="<?php echo $bfHighlightCssBase . $bfDarkThemeCss; ?>.min.css" media="not all">
+  <script>
+    (function () {
+      var lightLink = document.getElementById('bf-code-theme-light');
+      var darkLink = document.getElementById('bf-code-theme-dark');
+      if (!lightLink || !darkLink) { return; }
+      function applyCodeThemeCss() {
+        var isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+        lightLink.media = isDark ? 'not all' : 'screen';
+        darkLink.media = isDark ? 'screen' : 'not all';
+      }
+      applyCodeThemeCss();
+      if (window.MutationObserver) {
+        new MutationObserver(applyCodeThemeCss).observe(document.documentElement, {
+          attributes: true,
+          attributeFilter: ['data-theme']
+        });
+      }
+    })();
+  </script>
+  <?php
+  // ===== 代码块字体（等宽字体切换；system 不加载外部字体）=====
+  $bfCodeFontMap = butterflyGetCodeFontMap();
+  $bfCodeFont = (string) $this->options->codeFont;
+  if ($bfCodeFont === '' || !isset($bfCodeFontMap[$bfCodeFont])) {
+      $bfCodeFont = 'system';
+  }
+  $bfCodeFontStack = $bfCodeFontMap[$bfCodeFont]['stack'];
+  $bfCodeFontGoogle = $bfCodeFontMap[$bfCodeFont]['google'];
+  ?>
+  <?php if ($bfCodeFontGoogle !== '') : ?>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" id="bf-code-font-link" href="<?php echo htmlspecialchars($bfCodeFontGoogle, ENT_QUOTES, 'UTF-8'); ?>">
+  <?php endif; ?>
+  <style id="bf-code-font-style">
+    :root { --code-font-family: <?php echo $bfCodeFontStack; ?>; }
+    #article-container pre, #article-container code, #article-container kbd, #article-container samp,
+    #article-container pre code, pre, code, kbd, samp {
+      font-family: var(--code-font-family) !important;
+    }
+  </style>
   <style type="text/css" data-typed-js-css="true">
     .typed-cursor {
       opacity: 1;
@@ -467,7 +521,7 @@
 
 <body>
   <?php renderFileCachePermissionWarning(); ?>
-  <script src="<?php $this->options->themeUrl('/js/main.js?v1.8.3'); ?>"> </script>
+  <script src="<?php $this->options->themeUrl('/js/main.js?v1.8.4'); ?>"> </script>
   <script src="<?php $this->options->themeUrl('/js/utils.js?v1.7.3'); ?>"> </script>
   <script src="<?php $this->options->themeUrl('/js/external-link-confirm.js?v1.0.0'); ?>"> </script>
   <script src="<?php $this->options->themeUrl('/js/tw_cn.js?v1.7.3'); ?>"> </script>

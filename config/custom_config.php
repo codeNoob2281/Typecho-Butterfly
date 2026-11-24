@@ -2,6 +2,113 @@
 <?php
 require_once __DIR__ . '/theme_updater.php';
 
+/**
+ * highlight.js 代码块高亮主题映射表（内置 5 种样式）。
+ *
+ * - key    ：后台 codeTheme 选项保存的值，也是用户看到的名字对应的 slug
+ * - label  ：后台下拉框显示文本
+ * - light  ：浅色模式下加载的主题 CSS 名（不含 .min.css）
+ * - dark   ：深色模式下加载的主题 CSS 名（不含 .min.css）
+ *
+ * 说明：highlight.js 11.11.1 官方主题大多只针对单一模式，这里为纯暗色主题
+ * （dracula / monokai / nord）在浅色模式回退到 github 浅色版本，深色模式再用对应暗色主题。
+ * dracula 等 base16 主题位于 styles/base16/ 子目录，映射值里已带 base16/ 前缀做容错。
+ */
+function butterflyGetCodeThemeMap()
+{
+    return array(
+        'dracula'       => array('label' => 'Dracula (dracula)',               'light' => 'github',         'dark' => 'base16/dracula'),
+        'monokai'       => array('label' => 'Monokai (monokai)',               'light' => 'github',         'dark' => 'base16/monokai'),
+        'github'        => array('label' => 'GitHub (github)',                 'light' => 'github',         'dark' => 'github-dark'),
+        'atom-one-dark' => array('label' => 'Atom One Dark (atom-one-dark)',   'light' => 'atom-one-light', 'dark' => 'atom-one-dark'),
+        'nord'          => array('label' => 'Nord (nord)',                     'light' => 'github',         'dark' => 'nord'),
+    );
+}
+
+/**
+ * highlight.js 官方样式 CDN 基础地址（尾部以 / 结尾）。
+ */
+function butterflyGetHighlightCssBase()
+{
+    return 'https://cdn.bootcdn.net/ajax/libs/highlight.js/11.11.1/styles/';
+}
+
+/**
+ * highlight.js 主脚本 CDN 地址（后台预览用）。
+ */
+function butterflyGetHighlightJsUrl()
+{
+    return 'https://cdn.bootcdn.net/ajax/libs/highlight.js/11.11.1/highlight.min.js';
+}
+
+/**
+ * 读取当前生效的代码高亮主题 slug，未知/空值统一回退到 github。
+ */
+function butterflyGetActiveCodeTheme()
+{
+    $map = butterflyGetCodeThemeMap();
+    $value = (string) Helper::options()->codeTheme;
+    if ($value === '' || !isset($map[$value])) {
+        return 'github';
+    }
+    return $value;
+}
+
+/**
+ * 代码块字体映射表（内置 5 种等宽字体）。
+ *
+ * - key   ：后台 codeFont 选项保存的值
+ * - label ：后台下拉框显示文本
+ * - stack ：CSS 字体栈（system 为纯系统字体栈，不加载任何外部字体）
+ * - google：非系统字体对应的 Google Fonts css2 链接；system 为空字符串
+ *
+ * 若目标访客环境访问 Google Fonts 不稳定，可将下面的 fonts.googleapis.com
+ * 统一替换为国内镜像（如 fonts.loli.net），字体栈与逻辑无需改动。
+ */
+function butterflyGetCodeFontMap()
+{
+    return array(
+        'system' => array(
+            'label'  => '系统默认 (system)',
+            'stack'  => 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace',
+            'google' => '',
+        ),
+        'jetbrains-mono' => array(
+            'label'  => 'JetBrains Mono (jetbrains-mono)',
+            'stack'  => '"JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace',
+            'google' => 'https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap',
+        ),
+        'fira-code' => array(
+            'label'  => 'Fira Code (fira-code)',
+            'stack'  => '"Fira Code", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace',
+            'google' => 'https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;700&display=swap',
+        ),
+        'source-code-pro' => array(
+            'label'  => 'Source Code Pro (source-code-pro)',
+            'stack'  => '"Source Code Pro", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace',
+            'google' => 'https://fonts.googleapis.com/css2?family=Source+Code+Pro:wght@400;500;700&display=swap',
+        ),
+        'ubuntu-mono' => array(
+            'label'  => 'Ubuntu Mono (ubuntu-mono)',
+            'stack'  => '"Ubuntu Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace',
+            'google' => 'https://fonts.googleapis.com/css2?family=Ubuntu+Mono:wght@400;700&display=swap',
+        ),
+    );
+}
+
+/**
+ * 读取当前生效的代码字体 slug，未知/空值统一回退到 system。
+ */
+function butterflyGetActiveCodeFont()
+{
+    $map = butterflyGetCodeFontMap();
+    $value = (string) Helper::options()->codeFont;
+    if ($value === '' || !isset($map[$value])) {
+        return 'system';
+    }
+    return $value;
+}
+
 function themeConfig($form)
 {
     $currentVersion = butterflyGetInstalledThemeVersion();
@@ -205,6 +312,7 @@ function themeConfig($form)
 
     ?>
     <link rel="stylesheet" href="<?php Helper::options()->themeUrl('css/themedash.css?v1.9.7'); ?>">
+    <link rel="stylesheet" href="<?php Helper::options()->themeUrl('css/code-theme-preview.css?v1.0.0'); ?>">
     <?php if ($themeConfigNotice !== '') : ?>
         <div class="tongzhi">
             <?php echo htmlspecialchars($themeConfigNotice, ENT_QUOTES, 'UTF-8'); ?>
@@ -255,7 +363,7 @@ function themeConfig($form)
                         <a href='#beautifyBlock'>美化选项</a>
                         <a href='#ShowLive2D'>Live2D和界面交互</a>
                         <a href='#otherCustom'>其他自定义内容</a>
-                        <a href='#markdown'>Markdown语法支持</a>
+                        <a href='#markdown'>Markdown设置</a>
                         <a href='#CustomColor'>自定义颜色</a>
                         <a href='#captchaVerify'>评论验证码</a>
                         <a href='#cache'>缓存设置</a>
@@ -343,7 +451,8 @@ function themeConfig($form)
             });
         })();
     </script>
-    <script src="<?php Helper::options()->themeUrl('js/themecustom.js?v1.6.11'); ?>"></script>
+    <script src="<?php Helper::options()->themeUrl('js/themecustom.js?v1.6.12'); ?>"></script>
+    <script src="<?php Helper::options()->themeUrl('js/code-theme-preview.js?v1.1.0'); ?>"></script>
     <?php
     $sticky_cids = new Typecho_Widget_Helper_Form_Element_Text('sticky_cids', NULL, NULL, '置顶文章的 cid', '<span style="color:#444;display:inline-block;font-family:arial;background:#E8EFD1;padding:8px;width:100%">按照排序输入, 请以半角逗号或空格分隔 cid</span>');
     $sticky_cids->setAttribute('id', 'cids');
@@ -1106,6 +1215,64 @@ function themeConfig($form)
          注意：Mermaid 资源从 CDN 加载，请确保访客网络可访问 CDN；图表越复杂，渲染耗时越长。'
     );
     $form->addInput($enableMermaid->multiMode());
+
+    // 代码块高亮样式（highlight.js 主题切换 + 后台双模式实时预览）
+    $bfCodeThemeMap = butterflyGetCodeThemeMap();
+    $bfCodeThemeOptions = array();
+    foreach ($bfCodeThemeMap as $bfKey => $bfItem) {
+        $bfCodeThemeOptions[$bfKey] = $bfItem['label'];
+    }
+
+    $bfCodeThemePreviewConfig = array(
+        'cdn'    => butterflyGetHighlightCssBase(),
+        'hljs'   => butterflyGetHighlightJsUrl(),
+        'themes' => array(),
+        'sample' => "// 示例：计算数组中所有数字的平均值\nfunction average(numbers) {\n  const total = numbers.reduce((sum, n) => sum + n, 0);\n  console.log('结果：' + total);\n  return numbers.length ? total / numbers.length : 0;\n}\n",
+    );
+    foreach ($bfCodeThemeMap as $bfKey => $bfItem) {
+        $bfCodeThemePreviewConfig['themes'][$bfKey] = array(
+            'light' => $bfItem['light'],
+            'dark'  => $bfItem['dark'],
+        );
+    }
+
+    // 把字体栈一并交给后台预览脚本，切换字体时无需再请求 PHP
+    $bfCodeFontMap = butterflyGetCodeFontMap();
+    $bfCodeThemePreviewConfig['fonts'] = array();
+    foreach ($bfCodeFontMap as $bfFontKey => $bfFontItem) {
+        $bfCodeThemePreviewConfig['fonts'][$bfFontKey] = $bfFontItem['stack'];
+    }
+    $bfCodeThemePreviewConfig['defaultFont'] = 'system';
+
+    $bfCodeThemePreviewSlot = '<span class="bf-code-theme-preview-slot" data-bf-code-theme-config="'
+        . htmlspecialchars(json_encode($bfCodeThemePreviewConfig, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES), ENT_QUOTES, 'UTF-8')
+        . '"></span>';
+
+    $codeThemeDescription = '代码块高亮样式：选择文章代码块使用的 highlight.js 配色，下方会实时展示「浅色模式」与「深色模式」下的实际配色效果。';
+
+    $codeTheme = new Typecho_Widget_Helper_Form_Element_Select(
+        'codeTheme',
+        $bfCodeThemeOptions,
+        'github',
+        '代码块高亮样式',
+        $codeThemeDescription
+    );
+    $form->addInput($codeTheme->multiMode());
+
+    // 代码字体（等宽字体切换；系统默认不加载外部字体）
+    $bfCodeFontOptions = array();
+    foreach ($bfCodeFontMap as $bfFontKey => $bfFontItem) {
+        $bfCodeFontOptions[$bfFontKey] = $bfFontItem['label'];
+    }
+
+    $codeFont = new Typecho_Widget_Helper_Form_Element_Select(
+        'codeFont',
+        $bfCodeFontOptions,
+        'system',
+        '代码字体',
+        '选择代码块字体。系统默认使用本地等宽字体栈、不加载任何外部字体文件；选择其他字体时将从 Google Fonts 动态加载对应字体。' . $bfCodeThemePreviewSlot
+    );
+    $form->addInput($codeFont->multiMode());
 
     // 结束
 }

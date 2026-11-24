@@ -1,0 +1,66 @@
+/* 后台「Markdown设置 → 代码块高亮样式」双模式预览样式 */
+
+.bf-code-theme-preview-slot {
+    display: block;
+    margin-top: 10px;
+}
+
+.bf-code-theme-preview {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    margin-top: 4px;
+}
+
+.bf-code-theme-preview .bf-ct-col {
+    flex: 1 1 320px;
+    min-width: 0;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+}
+
+.bf-code-theme-preview .bf-ct-title {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 12px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #555;
+    background: #f2f3f5;
+    border-bottom: 1px solid #e3e5e8;
+}
+
+.bf-code-theme-preview .bf-ct-dot {
+    display: inline-block;
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+}
+
+.bf-code-theme-preview .bf-ct-dot--light {
+    background: #f7c948;
+}
+
+.bf-code-theme-preview .bf-ct-dot--dark {
+    background: #24292e;
+}
+
+.bf-code-theme-preview .bf-ct-body {
+    min-height: 150px;
+}
+
+.bf-code-theme-preview .bf-ct-body--light {
+    background: #ffffff;
+}
+
+.bf-code-theme-preview .bf-ct-body--dark {
+    background: #0d1117;
+}
+
+@media (max-width: 600px) {
+    .bf-code-theme-preview .bf-ct-col {
+        flex-basis: 100%;
+    }
+}

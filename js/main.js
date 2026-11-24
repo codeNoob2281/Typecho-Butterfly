@@ -99,10 +99,8 @@ document.addEventListener('DOMContentLoaded', function () {
     .replace(/>/g, '&gt;')
 
   const normalizeHighlightResultClasses = html => html.replace(/\bclass=(["'])(.*?)\1/g, (match, quote, className) => {
-    const normalizedClasses = [...new Set(className.split(/\s+/).map(item => {
-      if (!item || item === 'hljs') return ''
-      return item.startsWith('hljs-') ? item.slice(5) : item
-    }).filter(Boolean))]
+    // 保留 highlight.js 官方的 hljs- 前缀，使官方主题 CSS（.hljs-keyword 等）能生效
+    const normalizedClasses = [...new Set(className.split(/\s+/).filter(item => item && item !== 'hljs'))]
 
     return normalizedClasses.length ? `class=${quote}${normalizedClasses.join(' ')}${quote}` : ''
   })
@@ -256,7 +254,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     if (window.hljs) {
       if (typeof window.hljs.configure === 'function') {
-        window.hljs.configure({ classPrefix: '' })
+        window.hljs.configure({ classPrefix: 'hljs-' })
       }
       renderAllFigures()
       return Promise.resolve()
@@ -265,7 +263,7 @@ document.addEventListener('DOMContentLoaded', function () {
     if (!highlightJsPromise) {
       highlightJsPromise = getScript('https://cdn.bootcdn.net/ajax/libs/highlight.js/11.11.1/highlight.min.js').then(() => {
         if (window.hljs && typeof window.hljs.configure === 'function') {
-          window.hljs.configure({ classPrefix: '' })
+          window.hljs.configure({ classPrefix: 'hljs-' })
         }
       })
     }
