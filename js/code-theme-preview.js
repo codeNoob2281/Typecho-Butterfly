@@ -14,6 +14,21 @@
     'use strict';
 
     var HLJS_PROMISE = null;
+    var PREVIEW_FONT_LINKS = {};
+
+    // 后台预览页本身不会输出页头的 Google Fonts <link>，这里按需注入，
+    // 否则 font-family 写了字体名但字体文件没下载，只能回退到系统等宽字体（看起来“没变”）。
+    function ensurePreviewFont(url) {
+        if (!url || PREVIEW_FONT_LINKS[url]) {
+            return;
+        }
+        PREVIEW_FONT_LINKS[url] = true;
+        var link = document.createElement('link');
+        link.rel = 'stylesheet';
+        link.setAttribute('data-bf-preview-font', '1');
+        link.href = url;
+        document.head.appendChild(link);
+    }
 
     function loadScript(url) {
         if (!url) {
@@ -136,6 +151,9 @@
         if (!cfg.fonts) {
             cfg.fonts = {};
         }
+        if (!cfg.fontGoogle) {
+            cfg.fontGoogle = {};
+        }
         if (!cfg.cdn) {
             cfg.cdn = 'https://cdn.bootcdn.net/ajax/libs/highlight.js/11.11.1/styles/';
         }
@@ -146,19 +164,27 @@
 
         var highlightedHtml = '';
 
-        function getFontStack() {
+        function getFontInfo() {
             // 每次实时读取，避免初始化时机导致 fontSelect 引用失效
             var fs = document.querySelector('select[name="codeFont"]');
             var fontValue = fs ? (fs.value || cfg.defaultFont || 'system') : (cfg.defaultFont || 'system');
-            return cfg.fonts[fontValue] || cfg.fonts.system || 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace';
+            return {
+                value: fontValue,
+                stack: cfg.fonts[fontValue] || cfg.fonts.system || 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace',
+                google: (cfg.fontGoogle && cfg.fontGoogle[fontValue]) || ''
+            };
         }
 
         function update() {
             var value = select.value || 'github';
             var theme = cfg.themes[value] || cfg.themes.github || { light: 'github', dark: 'github-dark' };
-            var fontStack = getFontStack();
-            renderPanel(dom.lightBody, theme.light, highlightedHtml, cfg, fontStack);
-            renderPanel(dom.darkBody, theme.dark, highlightedHtml, cfg, fontStack);
+            var font = getFontInfo();
+            // 非系统字体：确保 Google Fonts 已注入文档，再渲染预览
+            if (font.google) {
+                ensurePreviewFont(font.google);
+            }
+            renderPanel(dom.lightBody, theme.light, highlightedHtml, cfg, font.stack);
+            renderPanel(dom.darkBody, theme.dark, highlightedHtml, cfg, font.stack);
         }
 
         ensureHljs(cfg).then(function (hljs) {

@@ -452,7 +452,7 @@ function themeConfig($form)
         })();
     </script>
     <script src="<?php Helper::options()->themeUrl('js/themecustom.js?v1.6.12'); ?>"></script>
-    <script src="<?php Helper::options()->themeUrl('js/code-theme-preview.js?v1.1.0'); ?>"></script>
+    <script src="<?php Helper::options()->themeUrl('js/code-theme-preview.js?v1.1.1'); ?>"></script>
     <?php
     $sticky_cids = new Typecho_Widget_Helper_Form_Element_Text('sticky_cids', NULL, NULL, '置顶文章的 cid', '<span style="color:#444;display:inline-block;font-family:arial;background:#E8EFD1;padding:8px;width:100%">按照排序输入, 请以半角逗号或空格分隔 cid</span>');
     $sticky_cids->setAttribute('id', 'cids');
@@ -1236,11 +1236,13 @@ function themeConfig($form)
         );
     }
 
-    // 把字体栈一并交给后台预览脚本，切换字体时无需再请求 PHP
+    // 把字体栈与 Google Fonts 链接一并交给后台预览脚本
     $bfCodeFontMap = butterflyGetCodeFontMap();
     $bfCodeThemePreviewConfig['fonts'] = array();
+    $bfCodeThemePreviewConfig['fontGoogle'] = array();
     foreach ($bfCodeFontMap as $bfFontKey => $bfFontItem) {
         $bfCodeThemePreviewConfig['fonts'][$bfFontKey] = $bfFontItem['stack'];
+        $bfCodeThemePreviewConfig['fontGoogle'][$bfFontKey] = $bfFontItem['google'];
     }
     $bfCodeThemePreviewConfig['defaultFont'] = 'system';
 
