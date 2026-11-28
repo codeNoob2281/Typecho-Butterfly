@@ -769,6 +769,335 @@
         }
     }
 
+    /* ---------- 友链弹窗表单 + 列表 CRUD ---------- */
+    var friendFields = ['title', 'url', 'avatar', 'desc', 'cover', 'subtitle', 'tags', 'role'];
+
+    function createEl(tag, className, text) {
+        var node = document.createElement(tag);
+        if (className) {
+            node.className = className;
+        }
+        if (typeof text !== 'undefined') {
+            node.textContent = text;
+        }
+        return node;
+    }
+
+    function decodeFriendValue(value) {
+        return (value || '').replace(/‖/g, '||').trim();
+    }
+
+    function encodeFriendValue(value) {
+        return (value || '').trim().replace(/\|\|/g, '‖');
+    }
+
+    function parseFriendText(text) {
+        var records = [];
+        (text || '').split(/\r\n|\r|\n/).forEach(function (line) {
+            if (!line.trim()) {
+                return;
+            }
+            var parts = line.split('||');
+            var record = {};
+            friendFields.forEach(function (key, index) {
+                record[key] = decodeFriendValue(parts[index] || '');
+            });
+            if (!record.role) {
+                record.role = '友链';
+            }
+            records.push(record);
+        });
+        return records;
+    }
+
+    function serializeFriendRecords(records) {
+        return records.map(function (record) {
+            return friendFields.map(function (key) {
+                return encodeFriendValue(record[key] || '');
+            }).join('||');
+        }).join('\n');
+    }
+
+    function createFriendModal(onSave) {
+        var root = createEl('div', 'tfm-modal');
+        root.hidden = true;
+        root.setAttribute('role', 'dialog');
+        root.setAttribute('aria-modal', 'true');
+
+        var mask = createEl('div', 'tfm-modal-mask');
+        var dialog = createEl('div', 'tfm-modal-dialog');
+        var head = createEl('div', 'tfm-modal-head');
+        var title = createEl('h4', 'tfm-modal-title', '添加友链');
+        var close = createEl('button', 'tfm-modal-close', '×');
+        close.type = 'button';
+        close.setAttribute('aria-label', '关闭');
+        head.appendChild(title);
+        head.appendChild(close);
+
+        var body = createEl('div', 'tfm-modal-body');
+        var fields = {};
+        var labels = {
+            title: '博客名称 / 标题 *',
+            url: '博客地址 *',
+            subtitle: '副标题',
+            avatar: '头像地址',
+            cover: '封面地址',
+            desc: '简介',
+            tags: '标签列表',
+            role: '身份说明'
+        };
+        var hints = {
+            url: '如 https://example.com',
+            avatar: '留空则自动生成文字头像',
+            cover: '留空则使用渐变封面',
+            desc: '一段介绍文字，会显示在卡片正文',
+            tags: '多个标签用逗号分隔，如 Docker, 网络排障',
+            role: '显示在卡片左下角，默认「友链」'
+        };
+
+        friendFields.forEach(function (key) {
+            var label = createEl('label', 'tfm-field');
+            if (key === 'desc' || key === 'tags' || key === 'role') {
+                label.classList.add('tfm-field-wide');
+            }
+            label.appendChild(createEl('span', 'tfm-field-label', labels[key]));
+            var input;
+            if (key === 'desc') {
+                input = createEl('textarea', 'tfm-field-input');
+                input.rows = 4;
+            } else {
+                input = createEl('input', 'tfm-field-input');
+                input.type = 'text';
+            }
+            input.setAttribute('data-field', key);
+            input.setAttribute('autocomplete', 'off');
+            input.setAttribute('data-bwignore', 'true');
+            if (hints[key]) {
+                input.placeholder = hints[key];
+            }
+            fields[key] = input;
+            label.appendChild(input);
+            body.appendChild(label);
+        });
+
+        var error = createEl('div', 'tfm-modal-error');
+        error.hidden = true;
+        body.appendChild(error);
+
+        var foot = createEl('div', 'tfm-modal-foot');
+        var cancel = createEl('button', 'tfm-btn tfm-btn-ghost', '取消');
+        cancel.type = 'button';
+        var save = createEl('button', 'tfm-btn tfm-btn-primary', '保存');
+        save.type = 'button';
+        foot.appendChild(cancel);
+        foot.appendChild(save);
+
+        dialog.appendChild(head);
+        dialog.appendChild(body);
+        dialog.appendChild(foot);
+        root.appendChild(mask);
+        root.appendChild(dialog);
+
+        var editingIndex = -1;
+
+        function hide() {
+            root.hidden = true;
+            document.body.classList.remove('tfm-modal-open');
+            editingIndex = -1;
+        }
+
+        function show(record, index) {
+            editingIndex = typeof index === 'number' ? index : -1;
+            title.textContent = editingIndex >= 0 ? '编辑友链' : '添加友链';
+            friendFields.forEach(function (key) {
+                fields[key].value = record && record[key] ? record[key] : '';
+            });
+            error.hidden = true;
+            root.hidden = false;
+            document.body.classList.add('tfm-modal-open');
+            fields.title.focus();
+        }
+
+        function submit() {
+            var record = {};
+            friendFields.forEach(function (key) {
+                record[key] = (fields[key].value || '').trim();
+            });
+            if (!record.title || !record.url) {
+                error.textContent = '请填写博客名称和博客地址';
+                error.hidden = false;
+                return;
+            }
+            if (!record.role) {
+                record.role = '友链';
+            }
+            onSave(record, editingIndex);
+            hide();
+        }
+
+        close.addEventListener('click', hide);
+        cancel.addEventListener('click', hide);
+        mask.addEventListener('click', hide);
+        save.addEventListener('click', submit);
+        document.addEventListener('keydown', function (event) {
+            if (!root.hidden && event.key === 'Escape') {
+                hide();
+            }
+        });
+
+        return { root: root, show: show, hide: hide };
+    }
+
+    function setupFriendsManager(form) {
+        var textarea = qs('textarea[name="Friends"]', form);
+        if (!textarea || textarea.getAttribute('data-friends-managed') === '1') {
+            return;
+        }
+
+        var fieldItem = textarea.parentNode;
+        var wrap = createEl('div', 'tfm');
+        var toolbar = createEl('div', 'tfm-toolbar');
+        var addBtn = createEl('button', 'tfm-btn tfm-btn-primary', '＋ 添加友链');
+        addBtn.type = 'button';
+        var count = createEl('span', 'tfm-count', '共 0 条');
+        var rawToggle = createEl('button', 'tfm-btn tfm-btn-ghost', '展开原始记录');
+        rawToggle.type = 'button';
+        toolbar.appendChild(addBtn);
+        toolbar.appendChild(count);
+        toolbar.appendChild(rawToggle);
+
+        var hint = createEl('p', 'tfm-hint', '每行一条友链；点击「添加友链」用表单编辑，也可展开原始记录手动修改。字段顺序：标题 || 地址 || 头像 || 简介 || 封面 || 副标题 || 标签 || 身份。');
+        var list = createEl('div', 'tfm-list');
+        var empty = createEl('div', 'tfm-empty', '还没有友链，点击「添加友链」创建第一条。');
+        var raw = createEl('div', 'tfm-raw');
+        raw.hidden = true;
+        var rawLabel = createEl('label', 'tfm-raw-label', '原始多行记录');
+        raw.appendChild(rawLabel);
+
+        wrap.appendChild(toolbar);
+        wrap.appendChild(hint);
+        wrap.appendChild(list);
+        wrap.appendChild(empty);
+        wrap.appendChild(raw);
+        fieldItem.insertBefore(wrap, textarea);
+        raw.appendChild(textarea);
+        textarea.setAttribute('data-friends-managed', '1');
+        textarea.classList.add('tfm-textarea');
+
+        var records = parseFriendText(textarea.value);
+        var syncing = false;
+        var modal = createFriendModal(function (record, index) {
+            if (index >= 0 && records[index]) {
+                records[index] = record;
+            } else {
+                records.push(record);
+            }
+            commit();
+        });
+
+        function commit() {
+            syncing = true;
+            textarea.value = serializeFriendRecords(records);
+            syncing = false;
+            render();
+        }
+
+        function move(index, offset) {
+            var target = index + offset;
+            if (target < 0 || target >= records.length) {
+                return;
+            }
+            var current = records[index];
+            records[index] = records[target];
+            records[target] = current;
+            commit();
+        }
+
+        function render() {
+            list.innerHTML = '';
+            count.textContent = '共 ' + records.length + ' 条';
+            empty.hidden = records.length > 0;
+
+            records.forEach(function (record, index) {
+                var row = createEl('div', 'tfm-row');
+
+                var thumb = createEl('div', 'tfm-row-thumb');
+                if (record.cover) {
+                    thumb.style.backgroundImage = 'url("' + record.cover.replace(/"/g, '%22') + '")';
+                } else {
+                    thumb.classList.add('is-fallback');
+                }
+                thumb.textContent = record.title ? record.title.charAt(0) : '?';
+                row.appendChild(thumb);
+
+                var main = createEl('div', 'tfm-row-main');
+                var name = createEl('div', 'tfm-row-title', record.title || '(未命名)');
+                main.appendChild(name);
+                var meta = createEl('div', 'tfm-row-meta', (record.subtitle ? record.subtitle + ' · ' : '') + (record.url || '未填写地址'));
+                main.appendChild(meta);
+                if (record.tags) {
+                    main.appendChild(createEl('div', 'tfm-row-tags', record.tags));
+                }
+                row.appendChild(main);
+
+                var actions = createEl('div', 'tfm-row-actions');
+                var editBtn = createEl('button', 'tfm-mini', '编辑');
+                editBtn.type = 'button';
+                editBtn.addEventListener('click', function () {
+                    modal.show(record, index);
+                });
+                var upBtn = createEl('button', 'tfm-mini', '↑');
+                upBtn.type = 'button';
+                upBtn.title = '上移';
+                upBtn.addEventListener('click', function () {
+                    move(index, -1);
+                });
+                var downBtn = createEl('button', 'tfm-mini', '↓');
+                downBtn.type = 'button';
+                downBtn.title = '下移';
+                downBtn.addEventListener('click', function () {
+                    move(index, 1);
+                });
+                var delBtn = createEl('button', 'tfm-mini tfm-mini-danger', '删除');
+                delBtn.type = 'button';
+                delBtn.addEventListener('click', function () {
+                    if (window.confirm('确定删除友链「' + (record.title || '未命名') + '」吗？')) {
+                        records.splice(index, 1);
+                        commit();
+                    }
+                });
+                actions.appendChild(editBtn);
+                actions.appendChild(upBtn);
+                actions.appendChild(downBtn);
+                actions.appendChild(delBtn);
+                row.appendChild(actions);
+
+                list.appendChild(row);
+            });
+        }
+
+        function syncFromTextarea() {
+            if (syncing) {
+                return;
+            }
+            records = parseFriendText(textarea.value);
+            render();
+        }
+
+        textarea.addEventListener('input', syncFromTextarea);
+        textarea.addEventListener('change', syncFromTextarea);
+        addBtn.addEventListener('click', function () {
+            modal.show(null, -1);
+        });
+        rawToggle.addEventListener('click', function () {
+            raw.hidden = !raw.hidden;
+            rawToggle.textContent = raw.hidden ? '展开原始记录' : '收起原始记录';
+        });
+
+        document.body.appendChild(modal.root);
+        render();
+    }
+
     function initThemeConfig() {
         var mainColumn = getMainColumn();
         var content = qs('#themeConfigContent');
@@ -800,6 +1129,7 @@
             return;
         }
 
+        setupFriendsManager(form);
         bindNavEvents();
         bindMobileToggle();
         bindSubmitMemory(form);

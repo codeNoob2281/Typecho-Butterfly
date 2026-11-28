@@ -764,3 +764,256 @@
     flex-direction: column-reverse;
   }
 }
+
+/* ============================================================
+   友链卡片：一行一个，封面 / 标题 / 副标题 / 简介 / 标签
+   ============================================================ */
+#article-container .flink .flink-card-list {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    padding: 0;
+    overflow: visible;
+    text-align: left;
+}
+
+#article-container .flink .flink-card-item {
+    position: relative;
+    display: flex;
+    min-height: 268px;
+    overflow: hidden;
+    border: 1px solid var(--hr-border);
+    border-radius: 14px;
+    background: var(--card-bg);
+    box-shadow: 0 4px 18px rgba(0, 0, 0, .06);
+    transition: transform .25s ease, box-shadow .25s ease;
+}
+
+#article-container .flink .flink-card-item:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 32px rgba(0, 0, 0, .14);
+}
+
+#article-container .flink .flink-card-cover {
+    position: relative;
+    display: block;
+    flex: 0 0 46%;
+    min-height: 268px;
+    background-color: #d9d9d9;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: cover;
+    overflow: hidden;
+    text-decoration: none;
+}
+
+#article-container .flink .flink-card-cover.is-fallback {
+    background-image:
+        radial-gradient(circle at 28% 26%, rgba(255, 255, 255, .45) 0, transparent 38%),
+        linear-gradient(135deg, #f7b2a4 0%, #c58bc4 42%, #6f7fc4 100%);
+}
+
+#article-container .flink .flink-card-cover::before {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(0, 0, 0, .18) 0%, transparent 45%, rgba(0, 0, 0, .32) 100%);
+    content: '';
+    pointer-events: none;
+}
+
+#article-container .flink .flink-card-cover-subtitle {
+    position: absolute;
+    top: 42%;
+    left: 0;
+    right: 0;
+    z-index: 1;
+    color: #fff;
+    font-size: 1.12em;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-align: center;
+    text-shadow: 0 2px 10px rgba(0, 0, 0, .55);
+    pointer-events: none;
+}
+
+#article-container .flink .flink-card-cover-open {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    z-index: 2;
+    padding: 10px 22px;
+    border-radius: 8px;
+    background: rgba(0, 0, 0, .62);
+    color: #fff;
+    font-size: .92em;
+    font-weight: 600;
+    letter-spacing: 1px;
+    white-space: nowrap;
+    opacity: 0;
+    transform: translate(-50%, -42%);
+    transition: opacity .25s ease, transform .25s ease;
+}
+
+#article-container .flink .flink-card-item:hover .flink-card-cover-open,
+#article-container .flink .flink-card-cover:focus .flink-card-cover-open {
+    opacity: 1;
+    transform: translate(-50%, -50%);
+}
+
+#article-container .flink .flink-card-body {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    min-width: 0;
+    padding: 26px 30px;
+}
+
+#article-container .flink .flink-card-head {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+#article-container .flink .flink-card-avatar {
+    flex: 0 0 54px;
+    width: 54px;
+    height: 54px;
+    overflow: hidden;
+    border-radius: 50%;
+    background: var(--text-bg-hover);
+}
+
+#article-container .flink .flink-card-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+#article-container .flink .flink-card-letter {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #7b8fd4, #9b6fb8);
+    color: #fff;
+    font-size: 1.5em;
+    font-weight: 700;
+}
+
+#article-container .flink .flink-card-titles {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+#article-container .flink .flink-card-title {
+    margin: 0;
+    font-size: 1.34em;
+    font-weight: 700;
+    line-height: 1.35;
+}
+
+#article-container .flink .flink-card-title a {
+    color: var(--font-color);
+    text-decoration: none;
+}
+
+#article-container .flink .flink-card-title a:hover {
+    color: #49b1f5;
+}
+
+#article-container .flink .flink-card-subtitle {
+    margin: 3px 0 0;
+    color: var(--font-color);
+    opacity: .72;
+    font-size: .88em;
+}
+
+#article-container .flink .flink-card-index {
+    flex: 0 0 auto;
+    color: var(--font-color);
+    font-size: 2.2em;
+    font-weight: 700;
+    line-height: 1;
+    opacity: .22;
+}
+
+#article-container .flink .flink-card-desc {
+    margin: 18px 0 16px;
+    color: var(--font-color);
+    font-size: .94em;
+    line-height: 1.85;
+}
+
+#article-container .flink .flink-card-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 18px;
+}
+
+#article-container .flink .flink-card-tag {
+    padding: 3px 12px;
+    border: 1px solid var(--hr-border);
+    border-radius: 6px;
+    background: transparent;
+    color: var(--font-color);
+    font-size: .82em;
+    line-height: 1.7;
+}
+
+#article-container .flink .flink-card-foot {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-top: auto;
+    padding-top: 14px;
+    border-top: 1px solid var(--hr-border);
+}
+
+#article-container .flink .flink-card-role {
+    color: var(--font-color);
+    opacity: .68;
+    font-size: .85em;
+}
+
+#article-container .flink .flink-card-visit {
+    color: #49b1f5;
+    font-weight: 600;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+#article-container .flink .flink-card-visit:hover {
+    text-decoration: underline;
+}
+
+[data-theme=dark] #article-container .flink .flink-card-item {
+    box-shadow: 0 4px 18px rgba(0, 0, 0, .35);
+}
+
+@media screen and (min-width: 768px) {
+    #article-container .flink .flink-card-item:nth-child(even) {
+        flex-direction: row-reverse;
+    }
+}
+
+@media screen and (max-width: 767px) {
+    #article-container .flink .flink-card-item {
+        flex-direction: column;
+    }
+
+    #article-container .flink .flink-card-cover {
+        flex: 0 0 auto;
+        min-height: 180px;
+    }
+
+    #article-container .flink .flink-card-body {
+        padding: 20px;
+    }
+
+    #article-container .flink .flink-card-index {
+        font-size: 1.7em;
+    }
+}

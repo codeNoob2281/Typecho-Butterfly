@@ -311,7 +311,7 @@ function themeConfig($form)
     }
 
     ?>
-    <link rel="stylesheet" href="<?php Helper::options()->themeUrl('css/themedash.css?v1.9.7'); ?>">
+    <link rel="stylesheet" href="<?php Helper::options()->themeUrl('css/themedash.css?v1.9.8'); ?>">
     <link rel="stylesheet" href="<?php Helper::options()->themeUrl('css/code-theme-preview.css?v1.0.0'); ?>">
     <?php if ($themeConfigNotice !== '') : ?>
         <div class="tongzhi">
@@ -451,7 +451,7 @@ function themeConfig($form)
             });
         })();
     </script>
-    <script src="<?php Helper::options()->themeUrl('js/themecustom.js?v1.6.12'); ?>"></script>
+    <script src="<?php Helper::options()->themeUrl('js/themecustom.js?v1.6.14'); ?>"></script>
     <script src="<?php Helper::options()->themeUrl('js/code-theme-preview.js?v1.1.1'); ?>"></script>
     <?php
     $sticky_cids = new Typecho_Widget_Helper_Form_Element_Text('sticky_cids', NULL, NULL, '置顶文章的 cid', '<span style="color:#444;display:inline-block;font-family:arial;background:#E8EFD1;padding:8px;width:100%">按照排序输入, 请以半角逗号或空格分隔 cid</span>');
@@ -768,10 +768,11 @@ function themeConfig($form)
         NULL,
         NULL,
         '友情链接（非必填）',
-        '介绍：用于填写友情链接 <br />
+        '介绍：用于填写友情链接，每行一条。点击「添加友链」可在弹窗表单中增删改，也可展开原始记录手动编辑 <br />
          注意：需在独立页面创建友链，该项才会生效 <br />
-         格式：博客名称 || 博客地址 || 博客头像 || 博客简介 <br />
-         其他：一行一个，一行代表一个友链'
+         字段顺序：标题 || 地址 || 头像 || 简介 || 封面 || 副标题 || 标签 || 身份 <br />
+         其中标签用逗号分隔；身份留空显示「友链」。前 4 个字段兼容旧格式，旧数据无需修改 <br />
+         卡片样式：封面在左、标题/副标题/简介/标签在右，一行一个卡片'
     );
     $form->addInput($Friends);
 

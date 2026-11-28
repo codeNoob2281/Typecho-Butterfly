@@ -25,7 +25,7 @@
     <title>请到浏览器访问      👉</title>
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
     <link rel="stylesheet" href="<?php $this->options->themeUrl('index.css?v1.2.0'); ?>">
-    <link rel="stylesheet" href="<?php $this->options->themeUrl('css/style.css?v1.2.9'); ?>">
+    <link rel="stylesheet" href="<?php $this->options->themeUrl('css/style.css?v1.8.6'); ?>">
     <?php if (!empty($this->options->beautifyBlock) && in_array('ShowBeautifyChange',$this->options->beautifyBlock)): ?> 
     <link rel="stylesheet" href="<?php $this->options->themeUrl('css/custom.css?v1.2.0'); ?>">
     <?php endif; ?>    

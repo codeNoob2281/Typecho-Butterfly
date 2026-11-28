@@ -24,7 +24,7 @@
   <link rel="preconnect" href="//<?php $this->options->jsdelivrLink() ?>" />
   <!--<link rel="stylesheet" href="https://cdn.jsdmirror.com/npm/justifiedGallery/dist/css/justifiedGallery.min.css">-->
   <link rel="stylesheet" href="<?php $this->options->themeUrl('index.css?v1.7.3'); ?>">
-  <link rel="stylesheet" href="<?php $this->options->themeUrl('css/style.css?v1.8.2'); ?>">
+  <link rel="stylesheet" href="<?php $this->options->themeUrl('css/style.css?v1.8.6'); ?>">
   <!--魔改美化-->
   <?php if (!empty($this->options->beautifyBlock) && in_array('ShowBeautifyChange', $this->options->beautifyBlock)) : ?>
     <link rel="stylesheet" href="<?php $this->options->themeUrl('css/custom.css?v1.8.1'); ?>">
